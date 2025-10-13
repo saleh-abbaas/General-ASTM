@@ -7,7 +7,7 @@ import os
 import subprocess
 import sys
 from dataclasses import dataclass
-from typing import Iterable, List, Sequence
+from typing import Iterable, List, Sequence, Tuple
 
 
 class DependencyError(RuntimeError):
@@ -39,9 +39,23 @@ def _missing_dependencies(dependencies: Iterable[Dependency]) -> List[Dependency
     return missing
 
 
-def _install_packages(packages: Iterable[str]) -> None:
+def _install_packages(packages: Iterable[str]) -> Tuple[str, str]:
     command = [sys.executable, "-m", "pip", "install", *packages]
-    subprocess.check_call(command)
+    process = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if process.returncode != 0:
+        raise DependencyError(
+            "Unable to install required Python packages automatically.\n"
+            f"Command: {' '.join(command)}\n"
+            f"Exit code: {process.returncode}\n\n"
+            f"Standard Output:\n{process.stdout.strip() or '<empty>'}\n\n"
+            f"Standard Error:\n{process.stderr.strip() or '<empty>'}"
+        )
+    return process.stdout, process.stderr
 
 
 def ensure_runtime_dependencies() -> List[str]:
@@ -55,13 +69,7 @@ def ensure_runtime_dependencies() -> List[str]:
     if not missing:
         return []
 
-    try:
-        _install_packages([dependency.package for dependency in missing])
-    except subprocess.CalledProcessError as exc:  # pragma: no cover - pip failure handled at runtime
-        raise DependencyError(
-            "Unable to install required Python packages automatically. "
-            "Please run 'pip install pyserial pywin32' manually and try again."
-        ) from exc
+    _install_packages([dependency.package for dependency in missing])
 
     remaining = _missing_dependencies(dependencies)
     if remaining:

@@ -10,8 +10,15 @@ import win32event  # type: ignore[import-not-found]
 import win32service  # type: ignore[import-not-found]
 import win32serviceutil  # type: ignore[import-not-found]
 
-from .config import AHGLISConfig, load_config
-from .listener import ASTMListener, LOGGER
+if __package__ in (None, ""):
+    import sys
+
+    package_root = str(Path(__file__).resolve().parent.parent)
+    if package_root not in sys.path:
+        sys.path.insert(0, package_root)
+
+from ahg_lis_project.config import AHGLISConfig, load_config
+from ahg_lis_project.listener import ASTMListener, LOGGER
 
 
 class AHGLISWindowsService(win32serviceutil.ServiceFramework):

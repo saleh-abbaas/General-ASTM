@@ -9,8 +9,13 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 from typing import List, Optional
 
-from .config import AHGLISConfig, load_config, save_config
-from .dependencies import DependencyError, ensure_runtime_dependencies
+if __package__ in (None, ""):
+    package_root = str(Path(__file__).resolve().parent.parent)
+    if package_root not in sys.path:
+        sys.path.insert(0, package_root)
+
+from ahg_lis_project.config import AHGLISConfig, load_config, save_config
+from ahg_lis_project.dependencies import DependencyError, ensure_runtime_dependencies
 
 
 def _load_serial_port_scanner():

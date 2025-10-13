@@ -29,14 +29,15 @@ and installing the service that runs the listener in the background.
 * [pywin32](https://pypi.org/project/pywin32/) to manage the Windows service
 
 > **Tip:** When the GUI starts it will automatically install these packages if they
-> are missing by calling `python -m pip install ...`. You can still install them
-> manually with `pip install pyserial pywin32` if you prefer to control the
-> process yourself.
+> are missing by calling `python -m pip install ...`. Any installation errors are
+> displayed in full so you can see the exact pip output without digging through
+> log files. You can still install them manually with `pip install pyserial pywin32`
+> if you prefer to control the process yourself.
 
 #### Using the GUI
 1. Launch the configuration tool:
    ```
-   python -m ahg_lis_project.gui
+   python -m ahg_lis_project
    ```
 2. Select the COM port connected to the analyser. Use **Refresh** to rescan ports.
 3. Pick the baud rate reported by the medical device (use **Custom** for uncommon values).
@@ -53,7 +54,7 @@ executable from the repository root:
 
 ```
 pip install pyinstaller
-pyinstaller --noconfirm --windowed --name "AHG_LIS_GUI" --add-data "ahg_lis_project;ahg_lis_project" ahg_lis_project/gui.py
+pyinstaller --noconfirm --windowed --name "AHG_LIS_GUI" --add-data "ahg_lis_project;ahg_lis_project" ahg_lis_project/__main__.py
 ```
 
 The generated files will be located under `dist/AHG_LIS_GUI`. The folder

@@ -9,7 +9,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from .config import AHGLISConfig
+if __package__ in (None, ""):
+    import sys
+
+    package_root = str(Path(__file__).resolve().parent.parent)
+    if package_root not in sys.path:
+        sys.path.insert(0, package_root)
+
+from ahg_lis_project.config import AHGLISConfig
 
 try:
     import serial  # type: ignore[import-not-found]

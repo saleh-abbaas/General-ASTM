@@ -7,14 +7,22 @@ import sys
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
-from typing import List
+from typing import List, Optional
 
 from .config import AHGLISConfig, load_config, save_config
+from .dependencies import DependencyError, ensure_runtime_dependencies
 
-try:
-    from serial.tools import list_ports  # type: ignore[import-not-found]
-except ModuleNotFoundError:  # pragma: no cover - optional dependency at runtime
-    list_ports = None  # type: ignore[assignment]
+
+def _load_serial_port_scanner():
+    try:
+        from serial.tools import list_ports  # type: ignore[import-not-found]
+
+        return list_ports
+    except ModuleNotFoundError:  # pragma: no cover - handled at runtime
+        return None
+
+
+list_ports = _load_serial_port_scanner()
 
 WINDOW_TITLE = "AHG LIS Project"
 SERVICE_SCRIPT = Path(__file__).resolve().parent / "service.py"
@@ -27,6 +35,26 @@ class AHGLISApp(tk.Tk):
         super().__init__()
         self.title(WINDOW_TITLE)
         self.resizable(False, False)
+
+        installed: Optional[List[str]] = None
+        self.withdraw()
+        try:
+            installed = ensure_runtime_dependencies()
+        except DependencyError as exc:
+            messagebox.showerror(WINDOW_TITLE, str(exc))
+            self.destroy()
+            raise SystemExit(1) from exc
+        finally:
+            self.deiconify()
+
+        if installed:
+            messagebox.showinfo(
+                WINDOW_TITLE,
+                "The following packages were installed automatically: " + ", ".join(installed),
+            )
+
+        global list_ports
+        list_ports = _load_serial_port_scanner()
 
         self.configuration = load_config()
 
@@ -166,7 +194,10 @@ def _default_baud_rates() -> tuple[str, ...]:
 
 
 def main() -> None:
-    app = AHGLISApp()
+    try:
+        app = AHGLISApp()
+    except SystemExit:
+        return
     app.mainloop()
 
 

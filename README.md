@@ -28,11 +28,10 @@ and installing the service that runs the listener in the background.
 * [pyserial](https://pypi.org/project/pyserial/) for serial communication
 * [pywin32](https://pypi.org/project/pywin32/) to manage the Windows service
 
-Install the dependencies using pip:
-
-```
-pip install pyserial pywin32
-```
+> **Tip:** When the GUI starts it will automatically install these packages if they
+> are missing by calling `python -m pip install ...`. You can still install them
+> manually with `pip install pyserial pywin32` if you prefer to control the
+> process yourself.
 
 #### Using the GUI
 1. Launch the configuration tool:
@@ -45,6 +44,27 @@ pip install pyserial pywin32
 5. Choose the log file path. The GUI will create the folder if it does not exist.
 6. Click **Install Service** to store the configuration and register the Windows service (run the tool as Administrator).
 7. Use **Start Service**, **Stop Service**, or **Uninstall Service** to control the background service.
+
+#### Building a distributable GUI + service
+If you want to ship the AHG LIS Project as a standalone executable for your lab
+computers you can bundle the GUI together with the service helper by using
+[PyInstaller](https://pyinstaller.org/). Install PyInstaller and build the
+executable from the repository root:
+
+```
+pip install pyinstaller
+pyinstaller --noconfirm --windowed --name "AHG_LIS_GUI" --add-data "ahg_lis_project;ahg_lis_project" ahg_lis_project/gui.py
+```
+
+The generated files will be located under `dist/AHG_LIS_GUI`. The folder
+contains the `AHG_LIS_GUI.exe` launcher plus all Python runtime files. Distribute
+the whole folder to the destination machine, then run `AHG_LIS_GUI.exe` as an
+administrator to configure and install the Windows service. The installed
+service uses the same configuration folder as when running the GUI with the
+standard Python interpreter.
+
+> **Note:** If you build the bundle from Linux or macOS replace the semicolon in
+> the `--add-data` flag with a colon: `--add-data "ahg_lis_project:ahg_lis_project"`.
 
 #### Running the service manually
 The Windows service entry point lives in `ahg_lis_project/service.py`. It can be controlled from the command line as well:

@@ -5,10 +5,10 @@ It handles both RS232 (COM Port, ttyS0 etc ) and TCP connections via LAN/wifi
 
 It is tested with
 
-	Erba biochemistry analysers (XL-640)
-	Note: Erba XL-640 with Windows-XP have problem with resources. Use Windows 7 or above
-	ElitePro Coagulation analyser
-	It must work with any analyser following ASTM protocol
+        Erba biochemistry analysers (XL-640)
+        Note: Erba XL-640 with Windows-XP have problem with resources. Use Windows 7 or above
+        ElitePro Coagulation analyser
+        It must work with any analyser following ASTM protocol
 
 ### prerequisites
   * Linux ( Tested in debian, but must work with any)
@@ -16,30 +16,53 @@ It is tested with
   * Some python 3 libraries like sys,logging, signal time,datetime,socket,serial
   * Most libraries are deault installation with python in Linux
   * See log file for missing libraries
-  
-### This project have astm_general.py file as sole code
-  * The program simply sends ACK on receipt of ENQ and LF from equipment
-  * The data received (from ENQ to EOT ) is saved in a file (see below)
-  * It is up to user to decide what to do with this data (e.g. database interfacing)  
-  * manual edit of file required for following
-    * to select the mode (tty or tcp)
-    * to select tty device (if tty mode)
-    * to select ip and port (if tcp mode)
-    * to specify folder for saving data files
-    * to specify file where log will be stored
-  * make file executable
-  ```
-  chmod +x astm_general.py
-  ```
-  * run script
-  * use inotifywait to see files being created
-  * see log file for error
-  
-### What Next
-  * create service to run at boot time (I am planning to add its example)
-  * create mysql support for database insertion
-  * program for bidirectional service
-  
+
+### AHG LIS Project (Windows)
+The repository now includes a Windows-focused workflow named **AHG LIS Project**. A graphical interface helps with
+configuring serial communication, selecting the destination folder for ASTM text files, choosing the log file location
+and installing the service that runs the listener in the background.
+
+#### Requirements
+* Windows 10 or later
+* Python 3.9+
+* [pyserial](https://pypi.org/project/pyserial/) for serial communication
+* [pywin32](https://pypi.org/project/pywin32/) to manage the Windows service
+
+Install the dependencies using pip:
+
+```
+pip install pyserial pywin32
+```
+
+#### Using the GUI
+1. Launch the configuration tool:
+   ```
+   python -m ahg_lis_project.gui
+   ```
+2. Select the COM port connected to the analyser. Use **Refresh** to rescan ports.
+3. Pick the baud rate reported by the medical device (use **Custom** for uncommon values).
+4. Choose the folder where ASTM payloads should be saved. Each transaction will be persisted as a timestamped `.txt` file.
+5. Choose the log file path. The GUI will create the folder if it does not exist.
+6. Click **Install Service** to store the configuration and register the Windows service (run the tool as Administrator).
+7. Use **Start Service**, **Stop Service**, or **Uninstall Service** to control the background service.
+
+#### Running the service manually
+The Windows service entry point lives in `ahg_lis_project/service.py`. It can be controlled from the command line as well:
+
+```
+python ahg_lis_project/service.py install --startup auto
+python ahg_lis_project/service.py start
+python ahg_lis_project/service.py stop
+python ahg_lis_project/service.py remove
+```
+
+The service uses the configuration stored under `%PROGRAMDATA%\AHG_LIS_Project\config.json`.
+
+### Legacy scripts
+The original `astm_general.py` script is still included for reference. It provides the barebones ASTM listener used on
+Linux systems. The new AHG LIS Project tooling offers the same serial capture flow with a modernised configuration
+experience on Windows.
+
 ### Contact
   * Dr Shaileshkumar Manubhai Patel
   * biochemistrygmcs@gmail.com

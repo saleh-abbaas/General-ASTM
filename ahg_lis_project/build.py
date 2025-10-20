@@ -93,6 +93,14 @@ def build_executable(*, dist_dir: Path | None = None, clean: bool = True) -> Pat
         shutil.rmtree(dist_dir, ignore_errors=True)
         shutil.rmtree(work_dir, ignore_errors=True)
 
+    hidden_imports = [
+        "pystray._win32",
+        "serial.tools.list_ports",
+        "serial.tools.list_ports_windows",
+        "serial.tools.list_ports_common",
+        "serial.tools.list_ports_posix",
+    ]
+
     arguments = [
         "--noconfirm",
         "--windowed",
@@ -108,6 +116,9 @@ def build_executable(*, dist_dir: Path | None = None, clean: bool = True) -> Pat
         _pyinstaller_data_argument(),
         str(Path(__file__).resolve().parent / "__main__.py"),
     ]
+
+    for module in hidden_imports:
+        arguments.extend(["--hidden-import", module])
     if clean:
         arguments.insert(0, "--clean")
 

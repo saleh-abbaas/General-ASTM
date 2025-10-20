@@ -31,10 +31,12 @@ and installing the service that runs the listener in the background.
   system tray status icon
 
 > **Tip:** When the GUI starts it will automatically install these packages if they
-> are missing by calling `python -m pip install ...`. Any installation errors are
-> displayed in full so you can see the exact pip output without digging through
-> log files. You can still install them manually with `pip install pyserial pywin32`
-> if you prefer to control the process yourself.
+> are missing. It now searches for a working Python interpreter on the machine and
+> falls back to the `pip` command if necessary, so environments where `python` is
+> not on `PATH` are still handled. Full pip output is shown when an installation
+> fails so you can diagnose configuration issues quickly. You can still install
+> them manually with `pip install pyserial pywin32 pystray Pillow` if you prefer
+> to control the process yourself.
 
 #### Using the GUI
 1. Launch the configuration tool:
@@ -57,9 +59,12 @@ and installing the service that runs the listener in the background.
 #### Building a distributable GUI + service
 If you want to ship the AHG LIS Project as a standalone executable for your lab
 computers you can bundle the GUI together with the service helper using the
-packaged builder. It automatically installs PyInstaller if necessary, invokes it
-with the correct options, and copies the CPython runtime DLL into the output so
-the executable can start without additional manual steps:
+packaged builder. Install the runtime dependencies in the build environment
+first (`pip install pyserial pywin32 pystray Pillow`) so PyInstaller can embed
+them. The helper automatically installs PyInstaller if necessary, invokes it
+with the correct options (including the serial and tray-icon backends required
+at runtime), and copies the CPython runtime DLL into the output so the executable
+can start without additional manual steps:
 
 ```
 python -m ahg_lis_project build
@@ -67,7 +72,8 @@ python -m ahg_lis_project build
 
 By default the distributable is written to `dist/AHG_LIS_GUI`. The folder
 contains the `AHG_LIS_GUI.exe` launcher together with every file required to run
-on a clean Windows machine. Copy the **entire** folder to the destination
+on a clean Windows machine (all Python dependencies are bundled, so no pip
+installation is necessary on the target PC). Copy the **entire** folder to the destination
 computer (do not run the executables from the temporary `build/` directory),
 then execute `AHG_LIS_GUI.exe` as an administrator to configure and install the
 Windows service. The installed service uses the same configuration folder as

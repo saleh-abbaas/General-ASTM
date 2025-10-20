@@ -26,6 +26,8 @@ def _required_dependencies() -> Sequence[Dependency]:
     deps: list[Dependency] = [Dependency("pyserial", "serial")]
     if os.name == "nt":
         deps.append(Dependency("pywin32", "win32serviceutil"))
+        deps.append(Dependency("pystray", "pystray"))
+        deps.append(Dependency("Pillow", "PIL"))
     return deps
 
 

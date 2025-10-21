@@ -1,0 +1,30 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AHGLIS.Core", "src/AHGLIS.Core/AHGLIS.Core.csproj", "{4E3F7E0E-6BB5-4E4A-AC93-DA649AEAA1F0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AHGLIS.Service", "src/AHGLIS.Service/AHGLIS.Service.csproj", "{1F9D5FCE-4DD1-41EE-A73C-240FDD8F5DB0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AHGLIS.Gui", "src/AHGLIS.Gui/AHGLIS.Gui.csproj", "{0F1D4E91-96DA-4E0E-9DBA-24685B7AEE09}"
+EndProject
+Global
+    GlobalSection(SolutionConfigurationPlatforms) = preSolution
+        Debug|Any CPU = Debug|Any CPU
+        Release|Any CPU = Release|Any CPU
+    EndGlobalSection
+    GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        {4E3F7E0E-6BB5-4E4A-AC93-DA649AEAA1F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {4E3F7E0E-6BB5-4E4A-AC93-DA649AEAA1F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {4E3F7E0E-6BB5-4E4A-AC93-DA649AEAA1F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {4E3F7E0E-6BB5-4E4A-AC93-DA649AEAA1F0}.Release|Any CPU.Build.0 = Release|Any CPU
+        {1F9D5FCE-4DD1-41EE-A73C-240FDD8F5DB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {1F9D5FCE-4DD1-41EE-A73C-240FDD8F5DB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {1F9D5FCE-4DD1-41EE-A73C-240FDD8F5DB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {1F9D5FCE-4DD1-41EE-A73C-240FDD8F5DB0}.Release|Any CPU.Build.0 = Release|Any CPU
+        {0F1D4E91-96DA-4E0E-9DBA-24685B7AEE09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {0F1D4E91-96DA-4E0E-9DBA-24685B7AEE09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {0F1D4E91-96DA-4E0E-9DBA-24685B7AEE09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {0F1D4E91-96DA-4E0E-9DBA-24685B7AEE09}.Release|Any CPU.Build.0 = Release|Any CPU
+    EndGlobalSection
+EndGlobal

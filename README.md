@@ -17,85 +17,84 @@ It is tested with
   * Most libraries are deault installation with python in Linux
   * See log file for missing libraries
 
-### AHG LIS Project (Windows)
-The repository now includes a Windows-focused workflow named **AHG LIS Project**. A graphical interface helps with
-configuring serial communication, selecting the destination folder for ASTM text files, choosing the log file location
-and installing the service that runs the listener in the background.
+### AHG LIS Project (Windows, C#)
+The Python utilities remain available for reference, but the recommended Windows
+deployment is now a C# solution located under [`csharp/`](csharp/). The
+reimplementation introduces a strongly typed core library, a Windows service
+host, and a graphical administration tool that always runs with elevated
+privileges.
 
-#### Requirements
-* Windows 10 or later
-* Python 3.9+
-* [pyserial](https://pypi.org/project/pyserial/) for serial communication
-* [pywin32](https://pypi.org/project/pywin32/) to manage the Windows service
-* [pystray](https://pypi.org/project/pystray/) and [Pillow](https://pypi.org/project/Pillow/) to display the optional
-  system tray status icon
+#### Solution layout
+* **AHGLIS.Core** – shared domain models, configuration persistence, logging, and
+  the serial listener implementation that translates ASTM payloads into text
+  files for each analyser.
+* **AHGLIS.Service** – a Windows Service (Worker Service) that watches the
+  configuration file, starts a listener per device profile, and exposes command
+  line helpers for installing, removing, starting, stopping, or checking the
+  service status.
+* **AHGLIS.Gui** – a Windows Forms application with a tray icon. It lets
+  administrators pick COM ports, baud rates, output folders, log directories,
+  and service actions while persisting device profiles.
 
-> **Tip:** When the GUI starts it will automatically install these packages if they
-> are missing. It now searches for a working Python interpreter on the machine and
-> falls back to the `pip` command if necessary, so environments where `python` is
-> not on `PATH` are still handled. Full pip output is shown when an installation
-> fails so you can diagnose configuration issues quickly. You can still install
-> them manually with `pip install pyserial pywin32 pystray Pillow` if you prefer
-> to control the process yourself.
+All executables request administrator privileges through their application
+manifest. Run every command below from an elevated PowerShell or Command Prompt.
 
-#### Using the GUI
-1. Launch the configuration tool:
+#### Building (Visual Studio or .NET SDK)
+1. Install the .NET 8.0 SDK and the “.NET desktop development” workload for
+   Visual Studio 2022 (or newer). The service targets `net8.0-windows` so build
+   machines must run Windows 10 or later.
+2. Open `csharp/AHGLISProject.sln` in Visual Studio **as Administrator**, or run
+   the following commands from an elevated terminal:
+   ```powershell
+   cd csharp
+   dotnet restore
+   dotnet build -c Release
    ```
-   python -m ahg_lis_project
+3. Publish the GUI and service (still elevated) so you can deploy them to the
+   analyser workstation:
+   ```powershell
+   dotnet publish src/AHGLIS.Gui/AHGLIS.Gui.csproj -c Release -r win-x64 -p:PublishSingleFile=false -o publish/gui
+   dotnet publish src/AHGLIS.Service/AHGLIS.Service.csproj -c Release -r win-x64 -p:PublishSingleFile=false -o publish/service
    ```
-2. Give the configuration a **Device Name**. Every device uses its own profile and Windows service instance so multiple
-   analysers can be captured concurrently.
-3. Select the COM port connected to the analyser. Use **Refresh** to rescan ports.
-4. Pick the baud rate reported by the medical device (use **Custom** for uncommon values).
-5. Choose the folder where ASTM payloads should be saved. Each transaction will be persisted as a timestamped `.txt`
-   file that includes the device identifier (for example `2024-06-30-10-55-20-000000_device-a.txt`).
-6. Choose the log file path. The GUI will create the folder if it does not exist.
-7. Click **Install Service** to store the configuration and register the Windows service (run the tool as Administrator).
-   The service is configured to start automatically when Windows boots and a tray icon (green when running, red when
-   stopped) reflects its status when the required packages are available.
-8. Use **Start Service**, **Stop Service**, or **Uninstall Service** to control the background service. Existing device
-   profiles can be reloaded from the **Device Name** drop-down.
+4. Copy the contents of `publish/gui` and `publish/service` to the target
+   machine, ensuring that `AHGLIS.Gui.exe` and `AHGLIS.Service.exe` live in the
+   same folder (the GUI launches the service executable when you ask it to
+   install, start, or stop the Windows service).
 
-#### Building a distributable GUI + service
-If you want to ship the AHG LIS Project as a standalone executable for your lab
-computers you can bundle the GUI together with the service helper using the
-packaged builder. Install the runtime dependencies in the build environment
-first (`pip install pyserial pywin32 pystray Pillow`) so PyInstaller can embed
-them. The helper automatically installs PyInstaller if necessary, invokes it
-with the correct options (including the serial and tray-icon backends required
-at runtime), and copies the CPython runtime DLL into the output so the executable
-can start without additional manual steps:
+#### Configuring analysers with the GUI
+1. Run `AHGLIS.Gui.exe` **as Administrator**. The manifest enforces elevation,
+   but starting the process from an elevated shell ensures the tray icon can
+   control the service.
+2. Use **Device name**, **Serial port**, **Baud rate**, **Output folder**, and
+   **Log folder** to describe the analyser. ASTM messages are persisted as
+   timestamped `.txt` files inside the output folder, prefixed with the device
+   name so multiple analysers can share a destination directory.
+3. Press **Save device**. Settings are written to
+   `%PROGRAMDATA%\AHG LIS Project\ahg-lis.settings.json`. Each device receives its
+   own log file as well as service-level diagnostics inside the configured log
+   directory.
+4. Use **Install** to register the Windows service. The GUI executes
+   `AHGLIS.Service.exe install`, which creates a service named
+   “AHG LIS Device Listener” configured for automatic start when Windows boots.
+5. Use **Start**, **Stop**, **Uninstall**, and **Refresh status** to control the
+   service. A tray icon remains in the notification area so you can minimise the
+   window without losing visibility into the service state.
 
-```
-python -m ahg_lis_project build
-```
+#### Service command-line reference
+`AHGLIS.Service.exe` exposes the following administrative verbs (run them from an
+elevated shell next to the executable):
 
-By default the distributable is written to `dist/AHG_LIS_GUI`. The folder
-contains the `AHG_LIS_GUI.exe` launcher together with every file required to run
-on a clean Windows machine (all Python dependencies are bundled, so no pip
-installation is necessary on the target PC). Copy the **entire** folder to the destination
-computer (do not run the executables from the temporary `build/` directory),
-then execute `AHG_LIS_GUI.exe` as an administrator to configure and install the
-Windows service. The installed service uses the same configuration folder as
-when running the GUI with the standard Python interpreter.
-
-Use `python -m ahg_lis_project build --dist-dir C:\\AHG\\Bundles` to change the
-output location or `python -m ahg_lis_project build --no-clean` to reuse existing
-build artefacts between invocations.
-
-#### Running the service manually
-The Windows service entry point lives in `ahg_lis_project/service.py`. It can be controlled from the command line as well:
-
-```
-python ahg_lis_project/service.py install --device-name "Device A" --config "C:\\AHG\\device-a.json"
-python ahg_lis_project/service.py start --service-name AHGLISProject_device-a
-python ahg_lis_project/service.py status --service-name AHGLISProject_device-a
-python ahg_lis_project/service.py stop --service-name AHGLISProject_device-a
-python ahg_lis_project/service.py remove --service-name AHGLISProject_device-a
+```powershell
+AHGLIS.Service.exe install    # register the Windows service and set it to start automatically
+AHGLIS.Service.exe uninstall  # remove the service after stopping it
+AHGLIS.Service.exe start      # start the service immediately
+AHGLIS.Service.exe stop       # stop the service gracefully
+AHGLIS.Service.exe status     # print the current ServiceControllerStatus
 ```
 
-Configuration files are stored per device under `%PROGRAMDATA%\AHG_LIS_Project\devices\`. Installing a service for the
-same device name again updates the configuration and leaves other devices untouched.
+When launched without arguments, the executable enters service mode (the GUI
+registers it with the `run` verb). Configuration changes are detected at runtime
+so listeners restart automatically when you edit device profiles in the GUI.
 
 ### Legacy scripts
 The original `astm_general.py` script is still included for reference. It provides the barebones ASTM listener used on
